@@ -14,7 +14,7 @@ def tweepy_pull(api, users, sell_coin, hold_times, buy_volume, simulate, stream,
 
 	# Create exchange object and start querying prices as a daemon (cancels when the main thread ends)
 	exchange = kucoin_api(api_keys, logfile=logfile, block=both, account_json=account_json)
-	exchange_data = exchange_pull(exchange, hold_times, base_coin=sell_coin)
+	exchange_data = ExchangePull(exchange, hold_times, base_coin=sell_coin)
 	daemon = threading.Thread(name='daemon', target=exchange_data.buy_sell_volumes, args=(volume,20*60))
 	daemon.setDaemon(True)
 	daemon.start()

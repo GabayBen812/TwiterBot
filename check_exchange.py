@@ -4,15 +4,15 @@ import ccxt
 from  datetime import datetime
 
 # Gathers prices from exchange to trade against coin
-class exchange_pull:
+class ExchangePull:
 
-	def __init__(self, exchange, hold_times, base_coin='BTC', coin_subset=None):
+	def __init__(self, exchange, sell_percentage, base_coin='BTC', coin_subset=None):
 		self.exchange = exchange.exchange
 		self.my_exchange = exchange
 		self.base_coin = base_coin
-		self.stopflag = False
+		self.should_stop = False
 		self.count_pulls = 0
-		self.hold_times = hold_times
+		self.hold_times = sell_percentage
 		self.coin_subset = coin_subset
 		self.buy_sell_vols = {}
 
@@ -75,7 +75,7 @@ class exchange_pull:
 				self.my_exchange.refresh_exchange()
 
 			# Set as cancellable thread on wakeup
-			if self.stopflag:
+			if self.should_stop:
 				return
 
 			self.get_tickers()

@@ -204,7 +204,7 @@ def query_tweets(api, users, sell_coin, hold_times, buy_volume, simulate, exchan
 			coin_subset = [buy_coin]
 
 		# Start price checking daemon thread
-		exchange_data = exchange_pull(exchange, hold_times, base_coin=sell_coin, coin_subset=coin_subset)
+		exchange_data = ExchangePull(exchange, hold_times, base_coin=sell_coin, coin_subset=coin_subset)
 		daemon = threading.Thread(name='daemon', target=exchange_data.buy_sell_volumes, args=(buy_volume,20*60))
 		daemon.setDaemon(True)
 		daemon.start()

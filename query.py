@@ -8,14 +8,15 @@ import threading
 
 
 # Query using tweepy self.api
-class Twitter_Query:
+class TwitterQuery:
+
     def __init__(self, api, exchange, exchange_data):
         self.api = api
         self.exchange = exchange
         self.exchange_data = exchange_data
 
     # query a user tweeting about a crypto
-    def query(self, user, pair, crypto, hold_time, volume, simulate, wait_tweet=True, print_timer=False, full_ex=True):
+    def query(self, user, pair, crypto, hold_time, volume, wait_tweet=True, print_timer=False, full_ex=True):
         tz = get_localzone()  # My current timezone
         error_count = 1
 
@@ -85,7 +86,7 @@ class Twitter_Query:
                 trigger_time = datetime.now()
                 print('\nMoonshot inbound!  -  %s' % (trigger_time.strftime('%b %d - %H:%M:%S')))
                 coin_vol = self.exchange_data.buy_sell_vols[pair[0]]
-                self.exchange.execute_trade(pair, hold_times=hold_time, buy_volume=coin_vol, simulate=simulate)
+                self.exchange.execute_trade(pair, hold_times=hold_time, buy_volume=coin_vol)
                 if wait_tweet:
                     print('\nClosed out on Tweet: "%s" created at %s\n' % (
                     new_tweet.full_text, new_tweet.created_at.strftime('%b %d - %H:%M:%S')))
@@ -94,22 +95,21 @@ class Twitter_Query:
 
 
 # Starts two threads, one which checks for prices to update the initial $ amount to the correct amount of coins or coin fractions          
-def query_tweets(api, exchange, user, pair, crypto, hold_times, buy_volume, simulate, wait_tweet=True,
-                 print_timer=False, full_ex=True):
+def query_tweets(api, exchange, user, coin_to_sell, sell_percentage, amount_to_buy, wait_tweet=True, print_timer=False, full_ex=True):
     # Create an exchange object with the base coin
-    coin_subset = [pair[0]]
-    exchange_data = exchange_pull(exchange, hold_times, base_coin=pair[1], coin_subset=coin_subset)
+    coin_subset = [coin_to_sell]
+    exchange_data = ExchangePull(exchange, sell_percentage, coin_subset=coin_subset)
 
     try:
         # Start price checking daemon thread
-        daemon = threading.Thread(name='daemon', target=exchange_data.buy_sell_volumes, args=(buy_volume, 20 * 60))
+        daemon = threading.Thread(name='daemon', target=exchange_data.buy_sell_volumes, args=(amount_to_buy, 20 * 60))
         daemon.daemon = True
         daemon.start()
         time.sleep(3)
 
         # Check for tweets from a user
-        querys = Twitter_Query(api, exchange, exchange_data)
-        querys.query(user, pair, crypto, hold_times, buy_volume, simulate, wait_tweet, print_timer, full_ex=full_ex)
+        queries = TwitterQuery(api, exchange, exchange_data)
+        queries.query(user, coin_to_sell, sell_percentage, amount_to_buy, wait_tweet, print_timer, full_ex=full_ex)
 
     except KeyboardInterrupt as e:
         print('\nKeyboard interrupt handling:\n\nExiting')

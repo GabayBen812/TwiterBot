@@ -9,10 +9,10 @@ import sys
 class kucoin_api:
 
 	# Initialize
-	def __init__(self, api_keys, logfile=False, block=False, account_json=None):
+	def __init__(self, api_keys, log_file=False, block=False, account_json=None):
 		self.api_keys = {'api_key':api_keys['kucoin_keys']['api_key'],'secret_key':api_keys['kucoin_keys']['secret_key']}
 		self.exchange = ccxt.kucoin({'apiKey':self.api_keys['api_key'], 'secret':self.api_keys['secret_key']})
-		self.logfile = logfile
+		self.logfile = log_file
 		self.block = block
 		self.started_time = datetime.now()
 		self.account_json = account_json
@@ -27,7 +27,7 @@ class kucoin_api:
 
 	# Buying of real cryto
 	def buy_crypto(self, ticker, buy_volume):
-		
+
 		# Try creating the buy order
 		for i in range(10):
 			try:
@@ -79,7 +79,7 @@ class kucoin_api:
 							fee = self.exchange.fetchTicker(fee_ticker)
 							fee_price = (fee['bid'] + fee['ask']) /2
 							sell_volume = buy_volume - fee_price * buy_trade['fee']['cost']
-						
+
 						# When fee currency is the same as the buy currency
 						else:
 							sell_volume = buy_volume - buy_trade['fee']['cost']
@@ -99,7 +99,7 @@ class kucoin_api:
 					self.refresh_exchange()
 				print(e)
 				print('\n\nTrying to sell %.10f again' % buy_volume)
-		
+
 		# Print sell
 		if sell_trade['status'] != 'open':
 			avg_price = sum([float(x['price']) * float(x['qty']) for x in sell_trade['info']['fills']])/sum([float(x['qty']) for x in sell_trade['info']['fills']])
@@ -111,7 +111,7 @@ class kucoin_api:
 		return sell_trade
 
 
-	# Get data from self.exchange and print it 
+	# Get data from self.exchange and print it
 	def simulate_trade(self, buy, volume, ticker, conversion):
 		if conversion[-4:] == 'USDT' and ticker[-4:] == 'USDT':
 			usdpair = {'bid':1,'ask':1}
@@ -129,13 +129,13 @@ class kucoin_api:
 		except Exception as e:
 			print (e, '\nError in fetching ticker info')
 		trade = {'symbol': ticker,'side':'buy' if buy else 'sell', 'amount':volume, 'cost':trade_price * volume}
-		
+
 		return trade
 
 
 	# Summarise trade buy and sell
 	def print_summary(self, simulate, ticker, buy_trade, sell_trades, conversion):
-		
+
 		if not simulate:
 			buy_id, sell_ids = buy_trade['info']['orderId'], [i['info']['orderId'] for i in sell_trades]
 			buy_prices, sell_prices = [], []
@@ -146,7 +146,7 @@ class kucoin_api:
 				except Exception as e:
 					print(e)
 					print("Couldn't fetch trades, tying again")
-					
+
 			# Loop over trades as one order could have had multiple fills
 			for trade in trades[::-1]:
 				if buy_id == trade['info']['orderId']:
@@ -155,7 +155,7 @@ class kucoin_api:
 					sell_prices.append({'amount':trade['amount'],'cost':trade['cost'],'fee':trade['fee']}) # Actual return uses fills
 
 			buy_fee = sum([x['fee']['cost'] for x in buy_prices])
-			sell_fee = sum([x['fee']['cost'] for x in sell_prices])        
+			sell_fee = sum([x['fee']['cost'] for x in sell_prices])
 
 			# Log fees
 			for i in range(20):
@@ -208,7 +208,7 @@ class kucoin_api:
 
 	# Send a telegram of the profits and losses
 	def send_telegram(self, ticker, buy_total, sell_total, gain_text, status, simulate):
-		
+
 		# Sending a telegram message to myself
 		import telegram
 		with open('../telegram_keys.json') as json_file:
@@ -223,7 +223,7 @@ class kucoin_api:
 					full_text = status.full_text
 				full_info_text = '(%s) %s\nBought %.6f and sold %.6f BTC\n\n@%s - %s:\n"%s"\n' % (ticker, gain_text, float(buy_total), \
 					float(sell_total), status.user.screen_name, status.created_at.strftime('%m/%d %H:%M:%S'), full_text)
-			
+
 			bot = telegram.Bot(token=telegram_dict['api_key'])
 			bot.send_message(chat_id=telegram_dict['chat_id'], text=full_info_text)
 
@@ -237,7 +237,7 @@ class kucoin_api:
 		with open("prev_trades/trades_%s_kucoin_%s_%s.txt" % (self.started_time.strftime('%Y-%m-%d_%H-%M-%S'), self.account_json, 'simulation' if simulate else 'live'), "a") as log_name:
 			# If status is a dict, the message was from a web scrape
 			if type(status) == dict:
-				json.dump({'url':status['url'],'update_text':status['update_text'],'update_time':status['update_time'].strftime('%Y-%m-%d_%H:%M:%S'),'ticker':ticker,'hold_times':hold_times,'complete_time':now,'buy_volume':buy_volume,'buy':buy_trade,'sell':sell_trades,'telegram':gain_text}, log_name)	
+				json.dump({'url':status['url'],'update_text':status['update_text'],'update_time':status['update_time'].strftime('%Y-%m-%d_%H:%M:%S'),'ticker':ticker,'hold_times':hold_times,'complete_time':now,'buy_volume':buy_volume,'buy':buy_trade,'sell':sell_trades,'telegram':gain_text}, log_name)
 
 			# If tweet from stream or query
 			else:
@@ -259,7 +259,7 @@ class kucoin_api:
 			sell_volumes = buy_volume[1]
 			buy_volume = buy_volume[0]
 
-		# Ticker and convesion 
+		# Ticker and convesion
 		ticker = pair[0]+'/'+pair[1]
 		tousd1 = pair[0]+'/USDT'
 		tousd2 = pair[1]+'/USDT'
@@ -278,7 +278,7 @@ class kucoin_api:
 			buy_trade, buy_volume = self.buy_crypto(ticker, buy_volume)
 		else:
 			buy_trade = self.simulate_trade(True, buy_volume, ticker, tousd2)
-		
+
 
 		# Sell in multiple stages based on hold_times
 		prev_sell_time = 0
