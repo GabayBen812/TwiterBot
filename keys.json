@@ -1,0 +1,12 @@
+{
+    "twitter_keys":{
+        "consumer_key":"k5YYDnyX8emlhwX6pD9vPdcpA",
+        "consumer_secret":"Ro3D9nv14ljkMSzk3hV7VaOTHSz4mUkoOQHP0oZufKRebqpwmP",
+        "access_token_key":"1044602734652067841-n1nEZXXmwhkCLcnkf9uv8RfUZMKgGu",
+        "access_token_secret":"j64qHXgvHTTu1Vuzm5RnY088pNAXxhJLbFFxqj6UfOnVr"
+    },
+    "kucoin_keys":{
+        "api_key":"619bd8c67aaf940001eb911c",
+        "secret_key":"b5f09983-7394-43de-8bcf-a771061cd5c8"
+    }
+}
