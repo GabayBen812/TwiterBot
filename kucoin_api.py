@@ -206,28 +206,6 @@ class kucoin_api:
 
 		return gain_text, buy_total, sell_total
 
-	# Send a telegram of the profits and losses
-	def send_telegram(self, ticker, buy_total, sell_total, gain_text, status, simulate):
-
-		# Sending a telegram message to myself
-		import telegram
-		with open('../telegram_keys.json') as json_file:
-			telegram_dict = json.load(json_file)
-			if type(status) == dict:
-				full_info_text = '(%s) %s\nBought %.6f and sold %.6f BTC\n\n@%s - %s:\n"%s"\n' % (ticker, gain_text, float(buy_total), \
-					float(sell_total), status['url'], status['update_time'].strftime('%m/%d %H:%M:%S'), status['update_text'])
-			else:
-				try:
-					full_text = status.text
-				except:
-					full_text = status.full_text
-				full_info_text = '(%s) %s\nBought %.6f and sold %.6f BTC\n\n@%s - %s:\n"%s"\n' % (ticker, gain_text, float(buy_total), \
-					float(sell_total), status.user.screen_name, status.created_at.strftime('%m/%d %H:%M:%S'), full_text)
-
-			bot = telegram.Bot(token=telegram_dict['api_key'])
-			bot.send_message(chat_id=telegram_dict['chat_id'], text=full_info_text)
-
-
 	# Log the trade
 	def log_trade(self, ticker, buy_volume, hold_times, buy_trade, sell_trades, gain_text, status, simulate):
 		# Log trade
@@ -306,10 +284,6 @@ class kucoin_api:
 		except Exception as e:
 			print('\nFailed to print summary\n')
 			print(e)
-
-		# Send telegram message
-		if 'telegram_keys.json' in os.listdir('../') and not simulate:
-			self.send_telegram(ticker, buy_total, sell_total, gain_text, status, simulate)
 
 		# Log trade
 		if self.logfile:

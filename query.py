@@ -16,7 +16,7 @@ class TwitterQuery:
         self.exchange_data = exchange_data
 
     # query a user tweeting about a crypto
-    def query(self, user, pair, crypto, hold_time, volume, wait_tweet=True, print_timer=False, full_ex=True):
+    def query(self, user, coin_to_sell, sell_percentage, amount_to_buy, triggers, blacklist, wait_tweet=True, full_ex=True):
         tz = get_localzone()  # My current timezone
         error_count = 1
 
@@ -36,21 +36,19 @@ class TwitterQuery:
                                                     )
 
                     last_tweet = new_tweet = first_tweet = tweets[0]
-
                 except Exception as e:
                     print(e)
                     print('\nCouldnt get first tweet')
                     print('%s\n' % (datetime.now().strftime('%b %d - %H:%M:%S')))
                     continue
+
                 print('\nWaiting for {} to tweet\n'.format(user[0]))
 
                 # Loop and sleep for a second to check when the last tweet has changed (e.g. when user has tweeted)
                 while new_tweet.full_text == last_tweet.full_text:
                     local_time = tz.localize(datetime.now())
                     utc_time = local_time.astimezone(pytz.utc).replace(tzinfo=None)
-                    if print_timer:
-                        print('\nTime between: %.6f' % (time.time() - last_time))
-                        print('Sleep time: %.4f' % (1 - (time.time() - last_time)))
+
                     if not full_ex:
                         sleep_time = 1 - (time.time() - last_time)
                         time.sleep(max(0, sleep_time))
@@ -69,10 +67,9 @@ class TwitterQuery:
                             sleep_time = 1 - (time.time() - last_time)
                             time.sleep(max(0, sleep_time))
                             last_time = time.time()
-
                     except Exception as e:
                         if error_count % 50 == 0:
-                            print(e, '\nTemporarily failed at tweet collector for the 5000th time')
+                            print(e, '\nTemporarily failed at tweet collector for the 50th time')
                             print('%s\n' % (datetime.now().strftime('%b %d - %H:%M:%S')))
                             print('\nWaiting for {} to tweet\n'.format(user[0]))
                         error_count += 1
@@ -80,13 +77,20 @@ class TwitterQuery:
                 new_tweet = {'full_text': 'Fake tweet about dogecoin or something', 'created_at': datetime.now()}
 
             # Check for any keywords in full text
-            if (not wait_tweet or any(i in new_tweet.full_text.lower() for i in crypto[
-                'triggers'])) and not first_tweet.full_text == new_tweet.full_text and utc_time - new_tweet.created_at.replace(tzinfo=None) < timedelta(
-                    seconds=10):
+            if not wait_tweet:
+                continue
+
+            # Trigger found & No blacklist found & tweet is not first tweet & time since tweet < 10
+            if any(trigger.lower() in new_tweet.full_text.lower() for trigger in triggers) \
+                    and not any(trigger.lower() in new_tweet.full_text.lower() for trigger in blacklist) \
+                    and first_tweet.full_text != new_tweet.full_text \
+                    and utc_time - new_tweet.created_at.replace(tzinfo=None) < timedelta(seconds=10):
                 trigger_time = datetime.now()
                 print('\nMoonshot inbound!  -  %s' % (trigger_time.strftime('%b %d - %H:%M:%S')))
-                coin_vol = self.exchange_data.buy_sell_vols[pair[0]]
-                self.exchange.execute_trade(pair, hold_times=hold_time, buy_volume=coin_vol)
+
+                coin_vol = self.exchange_data.buy_sell_vols[coin_to_sell]
+                self.exchange.execute_trade(coin_to_sell, hold_times=hold_time, buy_volume=coin_vol)
+
                 if wait_tweet:
                     print('\nClosed out on Tweet: "%s" created at %s\n' % (
                     new_tweet.full_text, new_tweet.created_at.strftime('%b %d - %H:%M:%S')))
@@ -109,7 +113,7 @@ def query_tweets(api, exchange, user, coin_to_sell, sell_percentage, amount_to_b
 
         # Check for tweets from a user
         queries = TwitterQuery(api, exchange, exchange_data)
-        queries.query(user, coin_to_sell, sell_percentage, amount_to_buy, wait_tweet, print_timer, full_ex=full_ex)
+        queries.query(user, coin_to_sell, sell_percentage, amount_to_buy, wait_tweet, full_ex)
 
     except KeyboardInterrupt as e:
         print('\nKeyboard interrupt handling:\n\nExiting')

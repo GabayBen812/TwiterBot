@@ -5,18 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d95e8299-0f21-42ab-9f12-f0885d81e231" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/check_exchange.py" beforeDir="false" afterPath="$PROJECT_DIR$/check_exchange.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchange_keywords.json" beforeDir="false" afterPath="$PROJECT_DIR$/exchange_keywords.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keywords.json" beforeDir="false" afterPath="$PROJECT_DIR$/keywords.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kucoin.py" beforeDir="false" afterPath="$PROJECT_DIR$/kucoin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kucoin_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/kucoin_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/query.py" beforeDir="false" afterPath="$PROJECT_DIR$/query.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/query_multiple.py" beforeDir="false" afterPath="$PROJECT_DIR$/query_multiple.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stream.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/stream_multiple.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter_exchanges.py" beforeDir="false" afterPath="$PROJECT_DIR$/twitter_exchanges.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter_kucoin.py" beforeDir="false" afterPath="$PROJECT_DIR$/twitter_kucoin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

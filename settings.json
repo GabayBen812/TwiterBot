@@ -27,5 +27,35 @@
       "api_key":"619bd8c67aaf940001eb911c",
       "secret_key":"b5f09983-7394-43de-8bcf-a771061cd5c8"
     }
-  }
+  },
+  "favorites": [
+    "AGH"
+  ],
+  "triggers": [
+    "$",
+    "MA",
+    "flipped",
+    "breaking out",
+    "gem",
+    "boiling",
+    "send",
+    "heating up",
+    "setup",
+    "support",
+    "buying",
+    "break out",
+    "sitting"
+  ],
+  "blacklist": [
+    "BTC",
+    "%",
+    "dip",
+    "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10",
+    "etherium",
+    "bitcoin",
+    "ETH",
+    "ADA",
+    "SOL",
+    ""
+  ]
 }

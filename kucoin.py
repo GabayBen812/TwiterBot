@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime
 from typing import Any, Dict
 
@@ -12,6 +13,8 @@ SELL_PERCENTAGE = "sell_percentage"
 AMOUNT_TO_BUY = "amount_to_buy"
 KEYS = "keys"
 USERS_TO_FIND = "users_to_find"
+TRIGGERS = "triggers"
+BLACKLIST = "blacklist"
 
 TWITTER_KEYS = "twitter_keys"
 CONSUMER_KEY = "consumer_key"
@@ -39,6 +42,8 @@ class Kucoin:
         self._amount_to_buy = settings[AMOUNT_TO_BUY]
         self._api_keys = settings[KEYS]
         self._users = settings[USERS_TO_FIND]
+        self._triggers = settings[TRIGGERS]
+        self._blacklist = settings[BLACKLIST]
         self._auth = None
         self._api = None
         self._exchange = None
@@ -83,9 +88,8 @@ class Kucoin:
     def refresh_exchange(self):
         self._exchange = ccxt.kucoin({CCTX_API_KEY: self._api_keys[KUCOIN_KEYS][API_KEY], CCTX_SECRET_KEY: self._api_keys[KUCOIN_KEYS][SECRET_KEY]})
 
-    # Buying of real cryto
+    # Buying of real crypto
     def buy_crypto(self, ticker, buy_volume):
-
         # Try creating the buy order
         for i in range(10):
             try:
@@ -259,8 +263,8 @@ class Kucoin:
             else:
                 ticker_info = self._exchange.fetch_ticker(ticker.split('/')[1] + '/' + 'USDT')
 
-        buy_total = sum(i['cost'] for i in buy_prices)
-        sell_total = sum([i['cost'] for i in sell_prices])
+        buy_total = sum(buy_prices)
+        sell_total = sum(sell_prices)
         avg_bid_ask = (ticker_info['bid'] + ticker_info['ask']) / 2
 
         gain_loss = (sell_total - buy_total) * avg_bid_ask - sell_fee_dollar - buy_fee_dollar
@@ -270,30 +274,6 @@ class Kucoin:
         print(gain_text)
 
         return gain_text, buy_total, sell_total
-
-    # Send a telegram of the profits and losses
-    def send_telegram(self, ticker, buy_total, sell_total, gain_text, status, simulate):
-
-        # Sending a telegram message to myself
-        import telegram
-        with open('../telegram_keys.json') as json_file:
-            telegram_dict = json.load(json_file)
-            if type(status) == dict:
-                full_info_text = '(%s) %s\nBought %.6f and sold %.6f BTC\n\n@%s - %s:\n"%s"\n' % (
-                    ticker, gain_text, float(buy_total), \
-                    float(sell_total), status['url'], status['update_time'].strftime('%m/%d %H:%M:%S'),
-                    status['update_text'])
-            else:
-                try:
-                    full_text = status.text
-                except:
-                    full_text = status.full_text
-                full_info_text = '(%s) %s\nBought %.6f and sold %.6f BTC\n\n@%s - %s:\n"%s"\n' % (
-                    ticker, gain_text, float(buy_total), \
-                    float(sell_total), status.user.screen_name, status.created_at.strftime('%m/%d %H:%M:%S'), full_text)
-
-            bot = telegram.Bot(token=telegram_dict['api_key'])
-            bot.send_message(chat_id=telegram_dict['chat_id'], text=full_info_text)
 
     # Log the trade
     def log_trade(self, ticker, buy_volume, hold_times, buy_trade, sell_trades, gain_text, status, simulate):
@@ -325,7 +305,7 @@ class Kucoin:
             log_name.write('\n')
 
     # Execute trade
-    def execute_trade(self, pair, hold_times=60, buy_volume=50, simulate=False, status=None):
+    def execute_trade(self, pair, hold_times=60, buy_volume=50, status=None):
 
         # Dealing with buy_sell volume pair or just a buy_volume
         if type(buy_volume) != list:
@@ -334,7 +314,7 @@ class Kucoin:
             sell_volumes = buy_volume[1]
             buy_volume = buy_volume[0]
 
-        # Ticker and convesion
+        # Ticker and conversion
         ticker = pair[0] + '/' + pair[1]
         tousd1 = pair[0] + '/USDT'
         tousd2 = pair[1] + '/USDT'
@@ -349,10 +329,7 @@ class Kucoin:
             print('Added to blockset ' + str(self.block_set))
 
         # Buy order
-        if not simulate:
-            buy_trade, buy_volume = self.buy_crypto(ticker, buy_volume)
-        else:
-            buy_trade = self.simulate_trade(True, buy_volume, ticker, tousd2)
+        buy_trade, buy_volume = self.buy_crypto(ticker, buy_volume)
 
         # Sell in multiple stages based on hold_times
         prev_sell_time = 0
@@ -362,10 +339,7 @@ class Kucoin:
             prev_sell_time = hold
 
             # Sell order
-            if not simulate:
-                sell_trades.append(self.sell_crypto(ticker, sell_volume, buy_trade))
-            else:
-                sell_trades.append(self.simulate_trade(False, sell_volume, ticker, tousd2))
+            sell_trades.append(self.sell_crypto(ticker, sell_volume, buy_trade))
 
         # Remove block when trade finishes
         if self.block:
@@ -380,10 +354,6 @@ class Kucoin:
         except Exception as e:
             print('\nFailed to print summary\n')
             print(e)
-
-        # Send telegram message
-        if 'telegram_keys.json' in os.listdir('../') and not simulate:
-            self.send_telegram(ticker, buy_total, sell_total, gain_text, status, simulate)
 
         # Log trade
         if self.logfile:
